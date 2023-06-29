@@ -1,0 +1,47 @@
+---
+- hosts: localhost
+  any_errors_fatal: true
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Get worker nodes
+      shell: kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "{{ inventory_hostname }}"
+      register: worker_nodes
+      changed_when: false
+      check_mode: false
+
+    - name: Configure SSH access to worker nodes
+      lineinfile:
+        path: /root/.ssh/authorized_keys
+        line: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+        state: present
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Delete worker nodes
+      shell: kubectl delete node {{ item }}
+      with_items: "{{ worker_nodes.stdout_lines }}"
+      changed_when: false
+      check_mode: false
+
+    - name: Delete etcd data
+      command: etcdctl del /registry
+      ignore_errors: yes
+      changed_when: false
+      check_mode: false
+
+    - name: Remove kubeconfig file
+      file:
+        path: ~/.kube
+        state: absent
+        recurse: yes
+      changed_when: false
+      check_mode: false
+
+    - name: Remove kubeadm-config.yml file
+      file:
+        path: /etc/kubernetes/kubeadm-config.yml
+        state: absent
+      changed_when: false
+      check_mode: false
+
+    
