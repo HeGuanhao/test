@@ -42,3 +42,10 @@ findImage.sh is used to iterate through the helm chart and yaml files to find th
 
 getGitCode is used to pull code from the specified git repository. The project name needs to be defined in projects.txt, and the git user needs to be set using YOUR_ USERNAME and YOUR_ PASSWORD.
 
+
+
+------
+
+## uninstall_Kubernetes
+
+Uninstall_ Kubernetes is used to delete K8s nodes. First, configure the inventoryini file, and then execute ./uninstall.sh
